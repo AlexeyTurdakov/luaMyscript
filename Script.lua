@@ -1,170 +1,236 @@
--- ============================================================
--- –°–∫—Ä–∏–ø—Ç –∞–Ω–∞–ª–∏–∑–∞ –¥–∏—Å–±–∞–ª–∞–Ω—Å–∞ —Å–ø—Ä–æ—Å–∞/–ø—Ä–µ–¥–ª–æ–∂–µ–Ω–∏—è
--- –í–µ—Ä—Å–∏—è: v1.1
--- –ò–∑–º–µ–Ω–µ–Ω–∏–µ: –¥–æ–±–∞–≤–ª–µ–Ω —Å–±—Ä–æ—Å ScVal –≤ 0 –µ—Å–ª–∏ —Ö–æ—Ç—è –±—ã –æ–¥–Ω–æ
--- —É—Å–ª–æ–≤–∏–µ –Ω–µ –≤—ã–ø–æ–ª–Ω—è–µ—Ç—Å—è
--- ============================================================
+-- ===============================================
+--  ¬ÂÒËˇ: v4.0
+--  Õ‡ÁÌ‡˜ÂÌËÂ:
+--  ¿Ì‡ÎËÁ FORTS Ù¸˛˜ÂÒÓ‚ (SPBFUT)
+--  ÀÓ„ËÍ‡ ÔÓÎÌÓÒÚ¸˛ ÒÓÓÚ‚ÂÚÒÚ‚ÛÂÚ Excel v1.8
+--  Œ·ÌÓ‚ÎÂÌËÂ 1 ‡Á ‚ ÏËÌÛÚÛ
+-- ===============================================
 
--- =========================
--- –ì–õ–û–ë–ê–õ–¨–ù–´–ï –ü–ï–†–ï–ú–ï–ù–ù–´–ï
--- =========================
 
-local SCRIPT_VERSION = "v1.1"            -- –í–µ—Ä—Å–∏—è —Å–∫—Ä–∏–ø—Ç–∞
-local is_run = true                      -- –§–ª–∞–≥ –∞–∫—Ç–∏–≤–Ω–æ—Å—Ç–∏ —Å–∫—Ä–∏–ø—Ç–∞
-local instruments = {}                   -- –¢–∞–±–ª–∏—Ü–∞ –∏–Ω—Å—Ç—Ä—É–º–µ–Ω—Ç–æ–≤
-local ScVal = {}                         -- –¢–∞–±–ª–∏—Ü–∞ —Å—á–µ—Ç—á–∏–∫–æ–≤ ScVal –¥–ª—è –∫–∞–∂–¥–æ–≥–æ —Ç–∏–∫–µ—Ä–∞
+-- ================================
+-- √ÀŒ¡¿À‹Õ€≈ œ≈–≈Ã≈ÕÕ€≈
+-- ================================
 
--- ============================================================
--- –ë–ï–ó–û–ü–ê–°–ù–´–ô –í–´–í–û–î –°–û–û–ë–©–ï–ù–ò–ô
--- ============================================================
+local CLASS_CODE = "SPBFUT"      --  Î‡ÒÒ FORTS Ù¸˛˜ÂÒÓ‚
+local UPDATE_INTERVAL = 60000    -- »ÌÚÂ‚‡Î Ó·ÌÓ‚ÎÂÌËˇ (60000 ÏÒ = 1 ÏËÌÛÚ‡)
 
-local function safe_message(text)                    -- –§—É–Ω–∫—Ü–∏—è –∑–∞—â–∏—â–µ–Ω–Ω–æ–≥–æ –≤—ã–≤–æ–¥–∞
-    if text ~= nil then                              -- –ü—Ä–æ–≤–µ—Ä—è–µ–º —á—Ç–æ —Å–æ–æ–±—â–µ–Ω–∏–µ —Å—É—â–µ—Å—Ç–≤—É–µ—Ç
-        message(tostring(text), 1)                   -- –í—ã–≤–æ–¥–∏–º —Å–æ–æ–±—â–µ–Ω–∏–µ –≤ QUIK
+local is_run = true              -- ‘Î‡„ ‡·ÓÚ˚ ÒÍËÔÚ‡
+local tbl = nil                  -- Œ·˙ÂÍÚ Ú‡·ÎËˆ˚
+local instruments = {}           -- “‡·ÎËˆ‡ ËÌÒÚÛÏÂÌÚÓ‚
+local sc_counter = {}            -- “‡·ÎËˆ‡ Ì‡ÍÓÔËÚÂÎ¸Ì˚ı Ò˜∏Ú˜ËÍÓ‚ (‡Ì‡ÎÓ„ ÒÚÓÎ·ˆ‡ S ‚ Excel)
+
+
+-- ================================
+-- ‘”Õ ÷»ﬂ ¡≈«Œœ¿—ÕŒ√Œ œ–≈Œ¡–¿«Œ¬¿Õ»ﬂ ¬ ◊»—ÀŒ
+-- ================================
+-- ≈ÒÎË ÁÌ‡˜ÂÌËÂ nil ËÎË ÌÂ ˜ËÒÎÓ ó ‚ÓÁ‚‡˘‡ÂÏ 0
+-- œÓÎÌ˚È ‡Ì‡ÎÓ„ Excel ÙÛÌÍˆËË GetNumberSafe
+-- ================================
+function to_number_safe(value)
+
+    if value == nil then
+        return 0
     end
+
+    local num = tonumber(value)
+
+    if num == nil then
+        return 0
+    end
+
+    return num
 end
 
--- ============================================================
--- –ò–ù–ò–¶–ò–ê–õ–ò–ó–ê–¶–ò–Ø
--- ============================================================
 
-function OnInit()                                                -- –í—ã–∑—ã–≤–∞–µ—Ç—Å—è –ø—Ä–∏ –∑–∞–ø—É—Å–∫–µ
-    
-    safe_message("–°–∫—Ä–∏–ø—Ç –∑–∞–ø—É—â–µ–Ω. –í–µ—Ä—Å–∏—è: " .. SCRIPT_VERSION)  -- –°–æ–æ–±—â–µ–Ω–∏–µ –æ —Å—Ç–∞—Ä—Ç–µ
-    
-    local classes = getClassesList()                             -- –ü–æ–ª—É—á–∞–µ–º —Å–ø–∏—Å–æ–∫ –∫–ª–∞—Å—Å–æ–≤
-    
-    if classes == nil or classes == "" then                      -- –ü—Ä–æ–≤–µ—Ä—è–µ–º –∫–æ—Ä—Ä–µ–∫—Ç–Ω–æ—Å—Ç—å
-        safe_message("–û—à–∏–±–∫–∞: –Ω–µ —É–¥–∞–ª–æ—Å—å –ø–æ–ª—É—á–∏—Ç—å —Å–ø–∏—Å–æ–∫ –∫–ª–∞—Å—Å–æ–≤")
-        return
-    end
-    
-    for class_code in string.gmatch(classes, "[^,]+") do         -- –ü–µ—Ä–µ–±–∏—Ä–∞–µ–º –∫–ª–∞—Å—Å—ã
-        
-        local sec_list = getClassSecurities(class_code)          -- –ü–æ–ª—É—á–∞–µ–º —Å–ø–∏—Å–æ–∫ –∏–Ω—Å—Ç—Ä—É–º–µ–Ω—Ç–æ–≤
-        
-        if sec_list ~= nil then                                  -- –ü—Ä–æ–≤–µ—Ä–∫–∞ —Å—É—â–µ—Å—Ç–≤–æ–≤–∞–Ω–∏—è
-            
-            for sec_code in string.gmatch(sec_list, "[^,]+") do  -- –ü–µ—Ä–µ–±–∏—Ä–∞–µ–º —Ç–∏–∫–µ—Ä—ã
-                
-                instruments[#instruments + 1] = {                -- –î–æ–±–∞–≤–ª—è–µ–º –∏–Ω—Å—Ç—Ä—É–º–µ–Ω—Ç
-                    class = class_code,
-                    sec = sec_code
-                }
-                
-                ScVal[sec_code] = 0                              -- –ü—Ä–∏ –ø–µ—Ä–≤–æ–º –∑–∞–ø—É—Å–∫–µ –í–°–ï = 0
-                
+-- ================================
+-- —Œ«ƒ¿Õ»≈ “¿¡À»÷€
+-- ================================
+function create_table()
+
+    tbl = AllocTable()
+
+    AddColumn(tbl, 1, "name", true, QTABLE_STRING_TYPE, 20)
+    AddColumn(tbl, 2, "Streight", true, QTABLE_DOUBLE_TYPE, 15)
+    AddColumn(tbl, 3, "ScVal", true, QTABLE_INT_TYPE, 10)
+
+    CreateWindow(tbl)
+    SetWindowCaption(tbl, "FORTS Signals v4.0")
+
+end
+
+
+-- ================================
+-- Œ—ÕŒ¬ÕŒ… –¿—◊®“
+-- ================================
+function calculate()
+
+    local results = {}
+
+    -- œÓÎÛ˜‡ÂÏ ÍÓÎË˜ÂÒÚ‚Ó ËÌÒÚÛÏÂÌÚÓ‚ ÍÎ‡ÒÒ‡ SPBFUT
+    local sec_count = getNumberOf("securities")
+
+    for i = 0, sec_count - 1 do
+
+        local sec = getItem("securities", i)
+
+        if sec.class_code == CLASS_CODE then
+
+            local sec_code = sec.sec_code
+
+            -- ================================
+            -- œÓÎÛ˜‡ÂÏ ‰‡ÌÌ˚Â ÒÚ‡Í‡Ì‡
+            -- ================================
+            local quote = getQuoteLevel2(CLASS_CODE, sec_code)
+
+            if quote ~= nil then
+
+                -- Œ·˘ËÈ ÒÔÓÒ
+                local total_bid = to_number_safe(quote.bid_count)
+
+                -- Œ·˘ËÂ ÔÂ‰ÎÓÊÂÌËˇ
+                local total_offer = to_number_safe(quote.offer_count)
+
+                -- ÀÛ˜¯ËÂ Á‡ˇ‚ÍË
+                local bid_qty = 0
+                local offer_qty = 0
+
+                if quote.bid ~= nil and quote.bid[1] ~= nil then
+                    bid_qty = to_number_safe(quote.bid[1].quantity)
+                end
+
+                if quote.offer ~= nil and quote.offer[1] ~= nil then
+                    offer_qty = to_number_safe(quote.offer[1].quantity)
+                end
+
+
+                -- ================================
+                -- –‡Ò˜∏Ú T (Streight)
+                -- ‘ÓÏÛÎ‡ ÔÓÎÌÓÒÚ¸˛ Í‡Í ‚ Excel:
+                -- (Ó·˘.ÒÔÓÒ / Ó·˘.ÔÂ‰Î + Á‡ˇ‚ÍË ÍÛÔ. / Á‡ˇ‚ÍË ÔÓ‰.)
+                -- ================================
+                local Tval = 0
+
+                if total_offer > 0 and offer_qty > 0 then
+                    Tval = (total_bid / total_offer) + (bid_qty / offer_qty)
+                end
+
+
+                -- ================================
+                -- œÓÎÛ˜‡ÂÏ % ËÁÏÂÌÂÌËˇ ˆÂÌ˚
+                -- ================================
+                local last = to_number_safe(getParamEx(CLASS_CODE, sec_code, "LAST").param_value)
+                local prev_close = to_number_safe(getParamEx(CLASS_CODE, sec_code, "PREVPRICE").param_value)
+
+                local Eval = 0
+
+                if prev_close > 0 then
+                    Eval = ((last - prev_close) / prev_close) * 100
+                end
+
+
+                -- ================================
+                -- ”—ÀŒ¬»≈ —»√Õ¿À¿ (“Œ◊ÕŒ  ¿  ¬ EXCEL)
+                -- (T >= 1.999 »À» T <= 0.499)
+                -- »
+                -- (E >= 2 »À» E <= -2)
+                -- ================================
+                if (Tval >= 1.999 or Tval <= 0.499)
+                   and (Eval >= 2 or Eval <= -2) then
+
+                    -- ”‚ÂÎË˜Ë‚‡ÂÏ Ì‡ÍÓÔËÚÂÎ¸Ì˚È Ò˜∏Ú˜ËÍ
+                    sc_counter[sec_code] = (sc_counter[sec_code] or 0) + 1
+
+                else
+                    -- —·ÓÒ ÂÒÎË ÛÒÎÓ‚ËÂ Ì‡Û¯ÂÌÓ
+                    sc_counter[sec_code] = 0
+                end
+
+
+                -- ================================
+                -- ‘ËÎ¸Ú ‚˚‚Ó‰‡ ScVal >= 1
+                -- ================================
+                if sc_counter[sec_code] ~= nil
+                   and sc_counter[sec_code] >= 1 then
+
+                    table.insert(results, {
+                        name = sec_code,
+                        streight = Tval,
+                        scval = sc_counter[sec_code]
+                    })
+
+                end
+
             end
+
         end
+
     end
+
+
+    -- ================================
+    -- —Œ–“»–Œ¬ ¿ œŒ ”¡€¬¿Õ»ﬁ ScVal
+    -- ================================
+    table.sort(results, function(a, b)
+        return a.scval > b.scval
+    end)
+
+
+    -- ================================
+    -- Œ◊»—“ ¿ “¿¡À»÷€
+    -- ================================
+    Clear(tbl)
+
+
+    -- ================================
+    -- «¿œŒÀÕ≈Õ»≈ “¿¡À»÷€
+    -- ================================
+    for i, item in ipairs(results) do
+
+        InsertRow(tbl, i)
+
+        SetCell(tbl, i, 1, item.name)
+        SetCell(tbl, i, 2, string.format("%.3f", item.streight))
+        SetCell(tbl, i, 3, tostring(item.scval))
+
+        -- œÓ‰Ò‚ÂÚÍ‡ ÁÂÎ∏Ì˚Ï ÔË ScVal >= 3
+        if item.scval >= 3 then
+            SetColor(tbl, i, 1, RGB(0,255,0), RGB(0,0,0), RGB(0,255,0), RGB(0,0,0))
+            SetColor(tbl, i, 2, RGB(0,255,0), RGB(0,0,0), RGB(0,255,0), RGB(0,0,0))
+            SetColor(tbl, i, 3, RGB(0,255,0), RGB(0,0,0), RGB(0,255,0), RGB(0,0,0))
+        end
+
+    end
+
 end
 
--- ============================================================
--- –û–°–ù–û–í–ù–û–ô –ê–ù–ê–õ–ò–ó
--- ============================================================
 
-local function analyze_market()
-    
-    local alert_list = ""                                        -- –°—Ç—Ä–æ–∫–∞ —É–≤–µ–¥–æ–º–ª–µ–Ω–∏—è
-    
-    for i, instrument in ipairs(instruments) do
-        
-        local class = instrument.class
-        local sec = instrument.sec
-        
-        -- –ü–æ–ª—É—á–∞–µ–º –ø–∞—Ä–∞–º–µ—Ç—Ä—ã
-        
-        local bid = getParamEx(class, sec, "BIDDEPTHT")          
-        local offer = getParamEx(class, sec, "OFFERDEPTHT")      
-        local bid_count = getParamEx(class, sec, "NUMBIDS")      
-        local offer_count = getParamEx(class, sec, "NUMOFFERS")  
-        local change = getParamEx(class, sec, "LASTCHANGEPRCNT") 
-        
-        -- –ü—Ä–æ–≤–µ—Ä—è–µ–º –∫–æ—Ä—Ä–µ–∫—Ç–Ω–æ—Å—Ç—å –¥–∞–Ω–Ω—ã—Ö
-        
-        if not bid or not offer or not bid_count or not offer_count or not change then
-            ScVal[sec] = 0                                       -- –ï—Å–ª–∏ –¥–∞–Ω–Ω—ã–µ –Ω–µ–∫–æ—Ä—Ä–µ–∫—Ç–Ω—ã ‚Üí —Å–±—Ä–æ—Å
-            goto continue
-        end
-        
-        local bid_val = tonumber(bid.param_value) or 0
-        local offer_val = tonumber(offer.param_value) or 0
-        local bid_cnt_val = tonumber(bid_count.param_value) or 0
-        local offer_cnt_val = tonumber(offer_count.param_value) or 0
-        local change_val = tonumber(change.param_value) or 0
-        
-        -- –ó–∞—â–∏—Ç–∞ –æ—Ç –¥–µ–ª–µ–Ω–∏—è –Ω–∞ 0
-        
-        if offer_val == 0 or offer_cnt_val == 0 then
-            ScVal[sec] = 0                                       -- –ï—Å–ª–∏ –¥–µ–ª–µ–Ω–∏–µ –Ω–µ–≤–æ–∑–º–æ–∂–Ω–æ ‚Üí —Å–±—Ä–æ—Å
-            goto continue
-        end
-        
-        -- –†–∞—Å—Å—á–∏—Ç—ã–≤–∞–µ–º –∫–æ—ç—Ñ—Ñ–∏—Ü–∏–µ–Ω—Ç—ã
-        
-        local ratio_volume = bid_val / offer_val
-        local ratio_orders = bid_cnt_val / offer_cnt_val
-        
-        -- –ü—Ä–æ–≤–µ—Ä—è–µ–º –≤—ã–ø–æ–ª–Ω–µ–Ω–∏–µ –ö–ê–ñ–î–û–ì–û —É—Å–ª–æ–≤–∏—è –æ—Ç–¥–µ–ª—å–Ω–æ
-        
-        local condition_volume =
-            (ratio_volume >= 1.999 or ratio_volume <= 0.499)
-        
-        local condition_orders =
-            (ratio_orders >= 1.999 or ratio_orders <= 0.499)
-        
-        local condition_change =
-            (change_val >= 2 or change_val <= -2)
-        
-        -- ====================================================
-        -- –ì–õ–ê–í–ù–ê–Ø –õ–û–ì–ò–ö–ê v1.1
-        -- ====================================================
-        
-        if condition_volume and condition_orders and condition_change then
-            ScVal[sec] = ScVal[sec] + 1                          -- –í—Å–µ —É—Å–ª–æ–≤–∏—è –≤—ã–ø–æ–ª–Ω–µ–Ω—ã ‚Üí +1
-        else
-            ScVal[sec] = 0                                       -- –•–û–¢–Ø –ë–´ –û–î–ù–û –Ω–µ –≤—ã–ø–æ–ª–Ω–µ–Ω–æ ‚Üí —Å–±—Ä–æ—Å
-        end
-        
-        -- –ü—Ä–æ–≤–µ—Ä—è–µ–º –¥–æ—Å—Ç–∏–∂–µ–Ω–∏–µ –ø–æ—Ä–æ–≥–∞
-        
-        if ScVal[sec] >= 3 then
-            
-            local strength = (ratio_volume + ratio_orders) / 2   -- –†–∞—Å—á–µ—Ç —Å–∏–ª—ã
-            
-            alert_list = alert_list ..
-                sec .. "; " ..
-                ScVal[sec] .. "; " ..
-                string.format("%.3f", strength) .. "\n"
-        end
-        
-        ::continue::
-        
+-- ================================
+-- Œ—ÕŒ¬ÕŒ… ÷» À
+-- ================================
+function main()
+
+    create_table()
+
+    while is_run do
+
+        calculate()
+
+        sleep(UPDATE_INTERVAL)
+
     end
-    
-    -- –í—ã–≤–æ–¥ —É–≤–µ–¥–æ–º–ª–µ–Ω–∏—è –µ—Å–ª–∏ –µ—Å—Ç—å —Å–∏–≥–Ω–∞–ª—ã
-    
-    if alert_list ~= "" then
-        safe_message("–°–∏–≥–Ω–∞–ª –æ–±–Ω–∞—Ä—É–∂–µ–Ω:\n" .. alert_list)
-    end
-    
+
 end
 
--- ============================================================
--- –¢–†–ò–ì–ì–ï–† –û–ë–ù–û–í–õ–ï–ù–ò–Ø
--- ============================================================
 
-function OnAllTrade()
-    if is_run then
-        analyze_market()
-    end
-end
-
--- ============================================================
--- –û–°–¢–ê–ù–û–í–ö–ê
--- ============================================================
-
+-- ================================
+-- «¿¬≈–ÿ≈Õ»≈
+-- ================================
 function OnStop()
+
     is_run = false
-    safe_message("–°–∫—Ä–∏–ø—Ç –æ—Å—Ç–∞–Ω–æ–≤–ª–µ–Ω")
+
+    if tbl ~= nil then
+        DestroyTable(tbl)
+    end
+
 end
