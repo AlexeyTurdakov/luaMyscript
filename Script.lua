@@ -1,10 +1,18 @@
 -- ===============================================
+<<<<<<< HEAD
 --  Версия: v4.9
+=======
+--  Версия: v4.8 WORKING FINAL
+--  Рабочая версия
+>>>>>>> origin/dev
 --  + До погашения
 --  + Фильтр >= 1 дня
 --  + Убраны короткие коды (EuH3)
 --  + %изм через LASTCHANGE (с резервом)
+<<<<<<< HEAD
 --  + В таблицу выводятся только счётчик >= 3
+=======
+>>>>>>> origin/dev
 -- ===============================================
 
 local CLASS_CODE = "SPBFUT"
@@ -23,9 +31,16 @@ function to_number_safe(value)
 end
 
 -------------------------------------------------
+<<<<<<< HEAD
 function get_trade_date()
 
     local d = getInfoParam("TRADEDATE")
+=======
+-- Получаем текущую торговую дату QUIK
+function get_trade_date()
+
+    local d = getInfoParam("TRADEDATE") -- формат DD.MM.YYYY
+>>>>>>> origin/dev
     if not d then return nil end
 
     local day   = tonumber(string.sub(d,1,2))
@@ -36,12 +51,20 @@ function get_trade_date()
 end
 
 -------------------------------------------------
+<<<<<<< HEAD
+=======
+-- Расчёт дней до экспирации
+>>>>>>> origin/dev
 function get_days_to_expiry(sec_code)
 
     local info = getSecurityInfo(CLASS_CODE, sec_code)
     if not info or not info.mat_date then return 0 end
 
+<<<<<<< HEAD
     local mat = tostring(info.mat_date)
+=======
+    local mat = tostring(info.mat_date) -- YYYYMMDD
+>>>>>>> origin/dev
     if string.len(mat) ~= 8 then return 0 end
 
     local exp_year  = tonumber(string.sub(mat,1,4))
@@ -86,11 +109,19 @@ function create_table()
     AddColumn(tbl, 9, "Счётчик", true, QTABLE_INT_TYPE, 10)
 
     CreateWindow(tbl)
+<<<<<<< HEAD
     SetWindowCaption(tbl, "FORTS Signals v4.9")
+=======
+    SetWindowCaption(tbl, "FORTS Signals v4.8 WORKING")
+>>>>>>> origin/dev
 
 end
 
 -------------------------------------------------
+<<<<<<< HEAD
+=======
+-- Заказываем параметр LASTCHANGE
+>>>>>>> origin/dev
 function request_lastchange()
 
     local sec_count = getNumberOf("securities")
@@ -140,6 +171,10 @@ function calculate()
                 local num_offers =
                     to_number_safe(getParamEx(CLASS_CODE, sec_code, "NUMOFFERS").param_value)
 
+<<<<<<< HEAD
+=======
+                -- % изменения через LASTCHANGE
+>>>>>>> origin/dev
                 local Eval = 0
 
                 local p = getParamEx(CLASS_CODE, sec_code, "LASTCHANGE")
@@ -147,6 +182,10 @@ function calculate()
                 if p and p.result == "1" then
                     Eval = tonumber(p.param_value) or 0
                 else
+<<<<<<< HEAD
+=======
+                    -- резервный расчёт
+>>>>>>> origin/dev
                     local last =
                         to_number_safe(getParamEx(CLASS_CODE, sec_code, "LAST").param_value)
 
@@ -156,6 +195,7 @@ function calculate()
                     if prev > 0 then
                         Eval = ((last - prev) / prev) * 100
                     end
+<<<<<<< HEAD
                 end
 
                 local Sila = 0
@@ -195,6 +235,45 @@ function calculate()
 
                     row = row + 1
                 end
+=======
+                end
+
+                local Sila = 0
+                if total_offer > 0 and num_offers > 0 then
+                    Sila = ((total_bid / total_offer) +
+                            (num_bids / num_offers)) / 2
+                end
+
+                if (Sila >= 1.999 or Sila <= 0.499)
+                   and (Eval >= 2 or Eval <= -2) then
+                    sc_counter[sec_code] =
+                        (sc_counter[sec_code] or 0) + 1
+                else
+                    sc_counter[sec_code] = 0
+                end
+
+                InsertRow(tbl, row)
+
+                SetCell(tbl, row, 1, name)
+                SetCell(tbl, row, 2, tostring(days))
+                SetCell(tbl, row, 3, tostring(total_bid))
+                SetCell(tbl, row, 4, tostring(total_offer))
+                SetCell(tbl, row, 5, tostring(num_bids))
+                SetCell(tbl, row, 6, tostring(num_offers))
+                SetCell(tbl, row, 7, string.format("%.2f", Eval))
+                SetCell(tbl, row, 8, string.format("%.3f", Sila))
+                SetCell(tbl, row, 9, tostring(sc_counter[sec_code]))
+
+                if sc_counter[sec_code] >= 1 then
+                    for col = 1, 9 do
+                        SetColor(tbl, row, col,
+                            RGB(0,255,0), RGB(0,0,0),
+                            RGB(0,255,0), RGB(0,0,0))
+                    end
+                end
+
+                row = row + 1
+>>>>>>> origin/dev
             end
         end
     end
