@@ -1,10 +1,10 @@
 -- ===============================================
---  Версия: v4.8 WORKING FINAL
---  Рабочая версия
+--  Версия: v4.9
 --  + До погашения
 --  + Фильтр >= 1 дня
 --  + Убраны короткие коды (EuH3)
 --  + %изм через LASTCHANGE (с резервом)
+--  + В таблицу выводятся только счётчик >= 3
 -- ===============================================
 
 local CLASS_CODE = "SPBFUT"
@@ -23,10 +23,9 @@ function to_number_safe(value)
 end
 
 -------------------------------------------------
--- Получаем текущую торговую дату QUIK
 function get_trade_date()
 
-    local d = getInfoParam("TRADEDATE") -- формат DD.MM.YYYY
+    local d = getInfoParam("TRADEDATE")
     if not d then return nil end
 
     local day   = tonumber(string.sub(d,1,2))
@@ -37,13 +36,12 @@ function get_trade_date()
 end
 
 -------------------------------------------------
--- Расчёт дней до экспирации
 function get_days_to_expiry(sec_code)
 
     local info = getSecurityInfo(CLASS_CODE, sec_code)
     if not info or not info.mat_date then return 0 end
 
-    local mat = tostring(info.mat_date) -- YYYYMMDD
+    local mat = tostring(info.mat_date)
     if string.len(mat) ~= 8 then return 0 end
 
     local exp_year  = tonumber(string.sub(mat,1,4))
@@ -88,12 +86,11 @@ function create_table()
     AddColumn(tbl, 9, "Счётчик", true, QTABLE_INT_TYPE, 10)
 
     CreateWindow(tbl)
-    SetWindowCaption(tbl, "FORTS Signals v4.8 WORKING")
+    SetWindowCaption(tbl, "FORTS Signals v4.9")
 
 end
 
 -------------------------------------------------
--- Заказываем параметр LASTCHANGE
 function request_lastchange()
 
     local sec_count = getNumberOf("securities")
@@ -143,7 +140,6 @@ function calculate()
                 local num_offers =
                     to_number_safe(getParamEx(CLASS_CODE, sec_code, "NUMOFFERS").param_value)
 
-                -- % изменения через LASTCHANGE
                 local Eval = 0
 
                 local p = getParamEx(CLASS_CODE, sec_code, "LASTCHANGE")
@@ -151,7 +147,6 @@ function calculate()
                 if p and p.result == "1" then
                     Eval = tonumber(p.param_value) or 0
                 else
-                    -- резервный расчёт
                     local last =
                         to_number_safe(getParamEx(CLASS_CODE, sec_code, "LAST").param_value)
 
@@ -177,27 +172,29 @@ function calculate()
                     sc_counter[sec_code] = 0
                 end
 
-                InsertRow(tbl, row)
+                -- ВЫВОД ТОЛЬКО ЕСЛИ СЧЁТЧИК >= 3
+                if sc_counter[sec_code] >= 3 then
 
-                SetCell(tbl, row, 1, name)
-                SetCell(tbl, row, 2, tostring(days))
-                SetCell(tbl, row, 3, tostring(total_bid))
-                SetCell(tbl, row, 4, tostring(total_offer))
-                SetCell(tbl, row, 5, tostring(num_bids))
-                SetCell(tbl, row, 6, tostring(num_offers))
-                SetCell(tbl, row, 7, string.format("%.2f", Eval))
-                SetCell(tbl, row, 8, string.format("%.3f", Sila))
-                SetCell(tbl, row, 9, tostring(sc_counter[sec_code]))
+                    InsertRow(tbl, row)
 
-                if sc_counter[sec_code] >= 1 then
+                    SetCell(tbl, row, 1, name)
+                    SetCell(tbl, row, 2, tostring(days))
+                    SetCell(tbl, row, 3, tostring(total_bid))
+                    SetCell(tbl, row, 4, tostring(total_offer))
+                    SetCell(tbl, row, 5, tostring(num_bids))
+                    SetCell(tbl, row, 6, tostring(num_offers))
+                    SetCell(tbl, row, 7, string.format("%.2f", Eval))
+                    SetCell(tbl, row, 8, string.format("%.3f", Sila))
+                    SetCell(tbl, row, 9, tostring(sc_counter[sec_code]))
+
                     for col = 1, 9 do
                         SetColor(tbl, row, col,
                             RGB(0,255,0), RGB(0,0,0),
                             RGB(0,255,0), RGB(0,0,0))
                     end
-                end
 
-                row = row + 1
+                    row = row + 1
+                end
             end
         end
     end
